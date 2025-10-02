@@ -1,0 +1,12 @@
+# This file tells Netlify how to build and deploy your site.
+
+[build]
+  # This command is not needed for a static site, but it's good practice.
+  # command = "echo 'No build command required'"
+  
+  # This tells Netlify where your serverless functions are located.
+  functions = "functions/"
+
+  # This is the directory that Netlify will publish.
+  # publish = "/" # Assuming your HTML files are in the root.
+
