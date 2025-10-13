@@ -1,12 +1,15 @@
-# This file tells Netlify how to build and deploy your site.
+# Este archivo le dice a Netlify cómo construir y desplegar tu sitio.
 
 [build]
-  # This command is not needed for a static site, but it's good practice.
-  # command = "echo 'No build command required'"
-  
-  # This tells Netlify where your serverless functions are located.
+  # Esta es la carpeta donde Netlify publicará tus archivos estáticos.
+  publish = "/"
+  # Esta le dice a Netlify dónde están tus funciones serverless.
   functions = "functions/"
 
-  # This is the directory that Netlify will publish.
-  # publish = "/" # Assuming your HTML files are in the root.
-
+# Esta es la nueva sección clave.
+# Le decimos a Netlify que la función "subscribe" debe activarse
+# con cada envío del formulario llamado "captura-leads".
+[functions]
+  [functions.subscribe]
+    # El nombre del formulario en tu index.html es "captura-leads"
+    form = "captura-leads"
