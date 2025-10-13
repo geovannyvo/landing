@@ -1,15 +1,9 @@
 # Este archivo le dice a Netlify cómo construir y desplegar tu sitio.
 
 [build]
-  # Esta es la carpeta donde Netlify publicará tus archivos estáticos.
+  # Esta es la carpeta que Netlify publicará. Contiene tu index.html, etc.
   publish = "/"
-  # Esta le dice a Netlify dónde están tus funciones serverless.
+  
+  # Esta le dice a Netlify dónde encontrar tus funciones serverless.
   functions = "functions/"
 
-# Esta es la nueva sección clave.
-# Le decimos a Netlify que la función "subscribe" debe activarse
-# con cada envío del formulario llamado "captura-leads".
-[functions]
-  [functions.subscribe]
-    # El nombre del formulario en tu index.html es "captura-leads"
-    form = "captura-leads"

@@ -145,17 +145,23 @@
                         <p class="max-w-2xl mx-auto text-base md:text-lg text-gray-300 mb-10">
                             Descubre cómo los sistemas inteligentes adaptan correos, ofertas y mensajes automáticamente. Descarga la guía gratuita y aprende a construir un sistema que analiza tus datos, personaliza cada mensaje y convierte en automático.
                         </p>
-                        <!-- ===== INICIO DE LA CORRECCIÓN ===== -->
-                        <!-- 1. El 'name' coincide con el de netlify.toml -->
-                        <!-- 2. 'data-netlify="true"' le da el control a Netlify. -->
-                        <!-- 3. 'action="/gracias/"' le dice a Netlify a dónde redirigir DESPUÉS de un envío exitoso. -->
-                        <form name="captura-leads" method="POST" data-netlify="true" action="/gracias/" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                            <input type="email" name="email" placeholder="Tu email principal" required class="w-full px-5 py-4 bg-gray-900 bg-opacity-50 border border-purple-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition">
+                        
+                        <!-- ===== INICIO DE LA CORRECCIÓN DEFINITIVA ===== -->
+                        <!-- 1. 'action' apunta al archivo .html exacto para evitar el error 404. -->
+                        <!-- 2. Se añade un campo oculto 'form-name' para asegurar que Netlify identifique el formulario. -->
+                        <!-- 3. Se añade un campo 'honeypot' (anti-spam), una buena práctica que ayuda a la detección. -->
+                        <form name="captura-leads" method="POST" action="/gracias.html" data-netlify="true" data-netlify-honeypot="bot-field" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+                            <input type="hidden" name="form-name" value="captura-leads" />
+                            <p class="hidden">
+                                <label>No llenar: <input name="bot-field" /></label>
+                            </p>
+                            <input type="email" name="email" placeholder="Tu email principal" required class="w-full px-5 py-4 bg-gray-900 bg-opacity-50 border-purple-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition">
                             <button type="submit" class="cta-button text-white font-bold px-8 py-4 rounded-lg whitespace-nowrap">
                                 ¡Descarga la Guía Gratuita Ahora!
                             </button>
                         </form>
-                        <!-- ===== FIN DE LA CORRECCIÓN ===== -->
+                        <!-- ===== FIN DE LA CORRECCIÓN DEFINITIVA ===== -->
+
                          <p class="mt-4 text-xs text-gray-500">Basado en metodologías implementadas por las empresas mas innovadoras del mercado.</p>
                     </div>
                 </div>
@@ -354,6 +360,7 @@
 
 </body>
 </html>
+
 
 
 
