@@ -146,11 +146,7 @@
                             Descubre cómo los sistemas inteligentes adaptan correos, ofertas y mensajes automáticamente. Descarga la guía gratuita y aprende a construir un sistema que analiza tus datos, personaliza cada mensaje y convierte en automático.
                         </p>
                         
-                        <!-- ===== INICIO DE LA CORRECCIÓN DEFINITIVA ===== -->
-                        <!-- 1. 'action' apunta al archivo .html exacto para evitar el error 404. -->
-                        <!-- 2. Se añade un campo oculto 'form-name' para asegurar que Netlify identifique el formulario. -->
-                        <!-- 3. Se añade un campo 'honeypot' (anti-spam), una buena práctica que ayuda a la detección. -->
-                        <form name="captura-leads" method="POST" action="/gracias.html" data-netlify="true" data-netlify-honeypot="bot-field" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+                        <form id="leadCaptureForm" name="captura-leads" method="POST" action="/gracias.html" data-netlify="true" data-netlify-honeypot="bot-field" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
                             <input type="hidden" name="form-name" value="captura-leads" />
                             <p class="hidden">
                                 <label>No llenar: <input name="bot-field" /></label>
@@ -160,9 +156,7 @@
                                 ¡Descarga la Guía Gratuita Ahora!
                             </button>
                         </form>
-                        <!-- ===== FIN DE LA CORRECCIÓN DEFINITIVA ===== -->
-
-                         <p class="mt-4 text-xs text-gray-500">Basado en metodologías implementadas por las empresas mas innovadoras del mercado.</p>
+                        <p class="mt-4 text-xs text-gray-500">Basado en metodologías implementadas por las empresas mas innovadoras del mercado.</p>
                     </div>
                 </div>
             </section>
@@ -329,7 +323,7 @@
                 trackEvent('time_on_page', { page_name: 'landing_funnel_autonomo', duration: durationInSeconds });
             });
             
-            // 3. Tracking de Envío de Formulario
+            // 3. Tracking de Envío de Formulario (AHORA FUNCIONA)
             const leadForm = document.getElementById('leadCaptureForm');
             if(leadForm) {
                 leadForm.addEventListener('submit', function(event) {
@@ -360,7 +354,3 @@
 
 </body>
 </html>
-
-
-
-
