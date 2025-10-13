@@ -1,36 +1,43 @@
-// Importar las herramientas necesarias. Tendrás que instalarlas.
-// En tu terminal, corre: npm install @supabase/supabase-js node-fetch
-import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch';
+// Usamos 'require' para asegurar la compatibilidad con Netlify
+const { createClient } = require('@supabase/supabase-js');
+const fetch = require('node-fetch');
 
-// Esta es la función que Netlify ejecutará automáticamente con cada envío de formulario.
-export const handler = async (event) => {
-  // 1. Extraemos el email del formulario que Netlify nos entrega.
-  const { payload } = JSON.parse(event.body);
-  const email = payload.data.email;
-
-  // 2. Obtenemos las URLs y claves de las variables de entorno de Netlify.
-  // ¡Esto es mucho más seguro que ponerlas en el HTML!
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Importante: Usa la clave "service_role"
-  const n8nWebhookUrl = process.env.N8N_CAPTURE_WEBHOOK_URL; // La URL de tu webhook de captura
-
-  // 3. Inicializamos el cliente de Supabase
-  const supabase = createClient(supabaseUrl, supabaseKey);
+exports.handler = async (event) => {
+  console.log('Función submission-created activada.');
 
   try {
-    // 4. GUARDAR EN SUPABASE: Intentamos insertar el nuevo email en tu tabla 'leads'.
-    // Asegúrate de que tu tabla se llame 'leads' y tenga una columna 'email'.
+    const { payload } = JSON.parse(event.body);
+    const email = payload.data.email;
+    console.log(`Email recibido del formulario: ${email}`);
+
+    // Validar que las variables de entorno están presentes
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+    const n8nWebhookUrl = process.env.N8N_CAPTURE_WEBHOOK_URL;
+
+    if (!supabaseUrl || !supabaseKey || !n8nWebhookUrl) {
+      throw new Error("Faltan variables de entorno críticas (Supabase o n8n).");
+    }
+    console.log('Variables de entorno cargadas correctamente.');
+
+    // Inicializar Supabase
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('Cliente de Supabase inicializado.');
+
+    // GUARDAR EN SUPABASE
+    console.log("Intentando insertar en Supabase...");
     const { data, error } = await supabase
-      .from('leads')
+      .from('leads') // Asegúrate que tu tabla se llama 'leads'
       .insert([{ email: email }]);
 
     if (error) {
-      // Si Supabase da un error, lo registramos y detenemos el proceso.
+      console.error('Error de Supabase:', error.message);
       throw new Error(`Error de Supabase: ${error.message}`);
     }
+    console.log('Email insertado en Supabase con éxito.', data);
 
-    // 5. ENVIAR WEBHOOK A N8N: Si todo fue bien con Supabase, enviamos los datos a n8n.
+    // ENVIAR WEBHOOK A N8N
+    console.log('Enviando webhook a n8n...');
     const n8nResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -38,20 +45,20 @@ export const handler = async (event) => {
     });
 
     if (!n8nResponse.ok) {
-      // Si n8n falla, también lo registramos.
-      throw new Error(`El webhook de n8n falló: ${n8nResponse.statusText}`);
+        const errorText = await n8nResponse.text();
+        console.error('Error del webhook de n8n:', n8nResponse.status, errorText);
+        throw new Error(`El webhook de n8n falló: ${n8nResponse.statusText}`);
     }
+    console.log('Webhook enviado a n8n con éxito.');
 
-    // 6. Si ambos pasos fueron exitosos, devolvemos una respuesta positiva.
-    // El usuario mientras tanto ya está siendo redirigido a gracias.html.
+    // Si todo fue exitoso
     return {
       statusCode: 200,
       body: JSON.stringify({ message: '¡Formulario procesado con éxito!' }),
     };
 
   } catch (error) {
-    console.error(error);
-    // Si algo falla, Netlify lo sabrá.
+    console.error('Error general en la función:', error.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: `Error: ${error.message}` }),
