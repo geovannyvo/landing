@@ -145,12 +145,17 @@
                         <p class="max-w-2xl mx-auto text-base md:text-lg text-gray-300 mb-10">
                             Descubre cómo los sistemas inteligentes adaptan correos, ofertas y mensajes automáticamente. Descarga la guía gratuita y aprende a construir un sistema que analiza tus datos, personaliza cada mensaje y convierte en automático.
                         </p>
-                        <form id="leadCaptureForm" name="captura-leads" action="gracias.html" method="POST" data-netlify="true" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+                        <!-- ===== INICIO DE LA CORRECCIÓN ===== -->
+                        <!-- 1. El 'name' coincide con el de netlify.toml -->
+                        <!-- 2. 'data-netlify="true"' le da el control a Netlify. -->
+                        <!-- 3. 'action="/gracias/"' le dice a Netlify a dónde redirigir DESPUÉS de un envío exitoso. -->
+                        <form name="captura-leads" method="POST" data-netlify="true" action="/gracias/" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
                             <input type="email" name="email" placeholder="Tu email principal" required class="w-full px-5 py-4 bg-gray-900 bg-opacity-50 border border-purple-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition">
                             <button type="submit" class="cta-button text-white font-bold px-8 py-4 rounded-lg whitespace-nowrap">
                                 ¡Descarga la Guía Gratuita Ahora!
                             </button>
                         </form>
+                        <!-- ===== FIN DE LA CORRECCIÓN ===== -->
                          <p class="mt-4 text-xs text-gray-500">Basado en metodologías implementadas por las empresas mas innovadoras del mercado.</p>
                     </div>
                 </div>
@@ -190,7 +195,7 @@
                             </ul>
                         </div>
                         <div class="reveal flex justify-center items-center p-8">
-                            <img src="imagenes/portada-guia.png" alt="Portada de la Guía PDF 'Desbloquea la Autonomía de tus Ventas con IA'" class="rounded-lg shadow-2xl" style="box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);">
+                            <img src="https://placehold.co/500x600/1A1A2E/CYAN?text=Gu%C3%ADa+PDF&font=inter" alt="Portada de la Guía PDF 'Desbloquea la Autonomía de tus Ventas con IA'" class="rounded-lg shadow-2xl" style="box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);">
                         </div>
                     </div>
                 </div>
@@ -349,5 +354,6 @@
 
 </body>
 </html>
+
 
 
