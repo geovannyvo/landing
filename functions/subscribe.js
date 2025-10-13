@@ -1,56 +1,60 @@
-// Import the Supabase client library
+// Importar las herramientas necesarias. Tendrás que instalarlas.
+// En tu terminal, corre: npm install @supabase/supabase-js node-fetch
 import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch';
 
-// The handler function for the Netlify Function
-exports.handler = async function(event, context) {
-  // We only want to handle POST requests
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
+// Esta es la función que Netlify ejecutará automáticamente con cada envío de formulario.
+export const handler = async (event) => {
+  // 1. Extraemos el email del formulario que Netlify nos entrega.
+  const { payload } = JSON.parse(event.body);
+  const email = payload.data.email;
+
+  // 2. Obtenemos las URLs y claves de las variables de entorno de Netlify.
+  // ¡Esto es mucho más seguro que ponerlas en el HTML!
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Importante: Usa la clave "service_role"
+  const n8nWebhookUrl = process.env.N8N_CAPTURE_WEBHOOK_URL; // La URL de tu webhook de captura
+
+  // 3. Inicializamos el cliente de Supabase
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // Parse the incoming request body to get the email
-    const { email } = JSON.parse(event.body);
-
-    if (!email) {
-      return { statusCode: 400, body: JSON.stringify({ message: 'Email es requerido.' }) };
-    }
-
-    // Get Supabase credentials from Netlify environment variables
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY;
-
-    // Create a new Supabase client
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Insert the new email into the 'subscribers' table
-    // Make sure you have a table named 'subscribers' with a column named 'email' in Supabase.
+    // 4. GUARDAR EN SUPABASE: Intentamos insertar el nuevo email en tu tabla 'leads'.
+    // Asegúrate de que tu tabla se llame 'leads' y tenga una columna 'email'.
     const { data, error } = await supabase
-      .from('subscribers')
+      .from('leads')
       .insert([{ email: email }]);
 
-    // If there was an error during insertion
     if (error) {
-      console.error('Supabase error:', error);
-      // Handle potential duplicate emails gracefully
-      if (error.code === '23505') { // 23505 is the code for unique constraint violation
-         return { statusCode: 409, body: JSON.stringify({ message: 'Este email ya está registrado.' }) };
-      }
-      return { statusCode: 500, body: JSON.stringify({ message: 'Error al guardar en la base de datos.' }) };
+      // Si Supabase da un error, lo registramos y detenemos el proceso.
+      throw new Error(`Error de Supabase: ${error.message}`);
     }
 
-    // If everything went well, return a success response
+    // 5. ENVIAR WEBHOOK A N8N: Si todo fue bien con Supabase, enviamos los datos a n8n.
+    const n8nResponse = await fetch(n8nWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email }),
+    });
+
+    if (!n8nResponse.ok) {
+      // Si n8n falla, también lo registramos.
+      throw new Error(`El webhook de n8n falló: ${n8nResponse.statusText}`);
+    }
+
+    // 6. Si ambos pasos fueron exitosos, devolvemos una respuesta positiva.
+    // El usuario mientras tanto ya está siendo redirigido a gracias.html.
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Suscripción exitosa!' }),
+      body: JSON.stringify({ message: '¡Formulario procesado con éxito!' }),
     };
 
-  } catch (err) {
-    console.error('Function error:', err);
+  } catch (error) {
+    console.error(error);
+    // Si algo falla, Netlify lo sabrá.
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Hubo un problema con la solicitud.' }),
+      body: JSON.stringify({ message: `Error: ${error.message}` }),
     };
   }
 };
-
