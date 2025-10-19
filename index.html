@@ -98,11 +98,26 @@
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=1335705618286621&ev=PageView&noscript=1"
     /></noscript>
+    
     <script>
         const TRACKING_WEBHOOK_URL = "https://n8n.iaparatodos.io/webhook/23a67bca-3a32-4593-8f57-8c5c287a1caf"; // Tu URL de tracking
 
         /**
-         * Helper para parsear parámetros UTM de la URL.
+         * ¡NUEVO!
+         * Obtiene un ID de visitante único de localStorage o crea uno nuevo.
+         */
+        function getOrCreateVisitorId() {
+            let visitorId = localStorage.getItem('visitor_id');
+            if (!visitorId) {
+                // Genera un ID único y lo guarda
+                visitorId = crypto.randomUUID();
+                localStorage.setItem('visitor_id', visitorId);
+            }
+            return visitorId;
+        }
+
+        /**
+         * Helper para parsear parámetros UTM de la URL. (Sin cambios)
          */
         function getUTMParams() {
             const params = new URLSearchParams(window.location.search);
@@ -118,24 +133,30 @@
         }
 
         /**
+         * ¡ACTUALIZADO!
          * Envía un evento de tracking al webhook Y al Meta Pixel.
-         * @param {string} eventType - El nombre del evento (ej. 'page_view').
-         * @param {object} eventDetails - Datos adicionales del evento.
+         * Ahora incluye el visitor_id.
          */
         function trackEvent(eventType, eventDetails = {}) {
             // Obtenemos el email si ya fue guardado.
             const userEmail = localStorage.getItem('userEmail') || 'visitante@anonimo.com';
             
+            // --- ¡NUEVO! Obtenemos el ID de visitante ---
+            const visitorId = getOrCreateVisitorId();
+            
             // --- ¡NUEVO! Obtenemos los parámetros UTM ---
             const utmParams = getUTMParams(); 
 
-            // Construimos el payload con la estructura anidada que n8n espera.
+            // Construimos el payload
             const payload = {
+                // --- ¡NUEVO! ---
+                visitor_id: visitorId, 
+                
                 email: userEmail,
                 event: eventType,
                 details: {
                     ...eventDetails,
-                    ...utmParams, // <-- Añadimos los UTMs aquí
+                    ...utmParams,
                     url: window.location.href,
                     timestamp: new Date().toISOString()
                 }
@@ -144,7 +165,7 @@
             // 1. Enviamos el evento a nuestro webhook de n8n.
             navigator.sendBeacon(TRACKING_WEBHOOK_URL, JSON.stringify(payload));
 
-            // 2. --- ¡NUEVO! Enviamos el evento al Meta Pixel si existe ---
+            // 2. Enviamos el evento al Meta Pixel si existe
             if (typeof fbq === 'function') {
                 if (eventType === 'page_view') {
                     // El pixel base ya dispara 'PageView', disparamos 'ViewContent' para más detalle.
@@ -242,7 +263,7 @@
                             </ul>
                         </div>
                         <div class="reveal flex justify-center items-center p-8">
-                            <img src="https.com/placehold.co/500x600/1A1A2E/CYAN?text=Gu%C3%ADa+PDF&font=inter" alt="Portada de la Guía PDF 'Desbloquea la Autonomía de tus Ventas con IA'" class="rounded-lg shadow-2xl" style="box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);">
+                            <img src="https://placehold.co/500x600/1A1A2E/CYAN?text=Gu%C3%ADa+PDF&font=inter" alt="Portada de la Guía PDF 'Desbloquea la Autonomía de tus Ventas con IA'" class="rounded-lg shadow-2xl" style="box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);">
                         </div>
                     </div>
                 </div>
@@ -360,10 +381,10 @@
     </script>
     
     <script>
-        // Script principal de lógica de página (Actualizado con Scroll Depth)
+        // Script principal de lógica de página (Sin cambios)
         document.addEventListener('DOMContentLoaded', function() {
             
-            // 1. Tracking de Page View (Ahora también dispara fbq('ViewContent'))
+            // 1. Tracking de Page View
             trackEvent('page_view', { page_name: 'landing_funnel_autonomo' });
 
             // 2. Tracking de Tiempo en Página
@@ -373,7 +394,7 @@
                 trackEvent('time_on_page', { page_name: 'landing_funnel_autonomo', duration: durationInSeconds });
             });
             
-            // 3. Tracking de Envío de Formulario (Ahora también dispara fbq('Lead'))
+            // 3. Tracking de Envío de Formulario
             const leadForm = document.getElementById('leadCaptureForm');
             if(leadForm) {
                 leadForm.addEventListener('submit', function(event) {
@@ -401,7 +422,7 @@
             const revealElements = document.querySelectorAll('.reveal');
             revealElements.forEach(el => observer.observe(el));
 
-            // ===== INICIO MEJORA 3: Tracking de Profundidad de Scroll =====
+            // 5. Tracking de Profundidad de Scroll
             const trackedScrollPercentages = new Set();
             window.addEventListener('scroll', () => {
                 const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -418,8 +439,6 @@
                     }
                 });
             }, { passive: true }); // Usar passive listener para mejor rendimiento
-            // ===== FIN MEJORA 3 =====
-
         });
     </script>
 

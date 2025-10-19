@@ -23,22 +23,95 @@
             box-shadow: 0 0 80px rgba(76, 29, 149, 0.6);
         }
     </style>
+    
     <script>
-        // El mismo script de tracking que tienes en la landing page.
-        const TRACKING_WEBHOOK_URL = "https://n8n.iaparatodos.io/webhook/23a67bca-3a32-4593-8f57-8c5c287a1caf";
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1335705618286621');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1335705618286621&ev=PageView&noscript=1"
+    /></noscript>
 
+    <script>
+        const TRACKING_WEBHOOK_URL = "https://n8n.iaparatodos.io/webhook/23a67bca-3a32-4593-8f57-8c5c287a1caf"; // Tu URL de tracking
+
+        /**
+         * Obtiene un ID de visitante único de localStorage o crea uno nuevo.
+         */
+        function getOrCreateVisitorId() {
+            let visitorId = localStorage.getItem('visitor_id');
+            if (!visitorId) {
+                // Genera un ID único y lo guarda
+                visitorId = crypto.randomUUID();
+                localStorage.setItem('visitor_id', visitorId);
+            }
+            return visitorId;
+        }
+
+        /**
+         * Helper para parsear parámetros UTM de la URL.
+         */
+        function getUTMParams() {
+            const params = new URLSearchParams(window.location.search);
+            const utms = {};
+            const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+            
+            utmKeys.forEach(key => {
+                if (params.has(key)) {
+                    utms[key] = params.get(key);
+                }
+            });
+            return utms;
+        }
+
+        /**
+         * Envía un evento de tracking al webhook Y al Meta Pixel.
+         */
         function trackEvent(eventType, eventDetails = {}) {
+            // Obtenemos el email si ya fue guardado.
             const userEmail = localStorage.getItem('userEmail') || 'visitante@anonimo.com';
+            
+            // Obtenemos el ID de visitante
+            const visitorId = getOrCreateVisitorId();
+            
+            // Obtenemos los parámetros UTM
+            const utmParams = getUTMParams(); 
+
+            // Construimos el payload
             const payload = {
+                visitor_id: visitorId, 
                 email: userEmail,
                 event: eventType,
                 details: {
                     ...eventDetails,
+                    ...utmParams,
                     url: window.location.href,
                     timestamp: new Date().toISOString()
                 }
             };
+
+            // 1. Enviamos el evento a nuestro webhook de n8n.
             navigator.sendBeacon(TRACKING_WEBHOOK_URL, JSON.stringify(payload));
+
+            // 2. Enviamos el evento al Meta Pixel si existe
+            if (typeof fbq === 'function') {
+                if (eventType === 'page_view') {
+                    fbq('track', 'ViewContent');
+                }
+                // En 'gracias.html', el evento 'conversion' dispara 'CompleteRegistration'
+                // 'Lead' ya fue disparado en el submit del index.
+                if (eventType === 'conversion') {
+                    fbq('track', 'CompleteRegistration');
+                }
+            }
         }
     </script>
 </head>
@@ -57,6 +130,7 @@
             trackEvent('page_view', { page_name: 'gracias' });
             
             // 2. Registramos un evento de conversión específico. ¡Este es el más importante!
+            // Esto también disparará fbq('track', 'CompleteRegistration');
             trackEvent('conversion', { conversion_name: 'descarga_guia_pdf' });
         });
     </script>
